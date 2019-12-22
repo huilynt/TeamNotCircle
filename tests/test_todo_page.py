@@ -1,0 +1,100 @@
+# Imports
+import os
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from selenium.common.exceptions import NoSuchElementException
+from todo.models import TodoItem
+import pytest
+import time
+import unittest
+import uuid
+
+
+class TestTodoPage(unittest.TestCase):
+    def setUp(self):
+        print('Setup')
+        self.driver = webdriver.Chrome()
+        self.driver.get("http://localhost:8000/todo")
+
+        self.todo_content = 'This is a new Todo!!'
+
+        # Elements
+        self.todo_input = self.driver.find_element_by_xpath(
+            "//input[@id='todo_input']")
+        self.submit_btn = self.driver.find_element_by_xpath(
+            "//input[@id='submit_btn']")
+        self.delete_btn = self.driver.find_element_by_xpath(
+            "//input[@id='delete_btn'][0]")
+        self.archive_btn = self.driver.find_element_by_xpath(
+            "//input[@id='archive_btn'][0]")
+
+    def tearDown(self):
+        print('Tear down')
+        self.driver.quit()
+
+    # Helper functions
+    def clearInputs(self):
+        self.todo_input.clear()
+
+    def create_todo_selenium(self):
+        self.todo_input.send_keys(self.todo_content)
+        self.submit_btn.click()
+
+    def create_todo_backend(self, todo_content):
+        new_todo = TodoItem.objects.create(content=todo_content)
+        return new_todo
+
+    def get_first_or_create_todo_backend(self):
+        if (TodoItem.objects.count()) < 0:
+            self.create_todo_backend('This is a new todo!')
+        all_todo = TodoItem.objects.all()
+        return all_todo[0]
+
+    # SELENIUM TEST
+    # 1 Test access to todo page
+    def test_access(self):
+        assert "Todo Page" in self.driver.title
+
+    # 2 Test add empty todo
+    def test_empty_todo_selenium(self):
+        self.clearInputs()
+        self.submit_btn.click()
+
+    # 3 Test add valid todo
+    def test_valid_todo_selenium(self):
+        self.create_todo_selenium()
+        assert self.todo_content in self.driver.page_source
+
+    # 4 Test delete todo
+    def test_delete_todo_selenium(self):
+        self.delete_btn.click()
+        assert self.todo_content not in self.driver.page_source
+
+    # 5 Test archive todo
+    def test_archive_todo_selenium(self):
+        self.create_todo_selenium()
+        self.archive_btn.click()
+
+    # BACKEND TEST
+    # 1 Test add empty todo
+    def test_empty_todo_backend(self):
+        new_todo = self.create_todo_backend('')
+        assert True == TodoItem.objects.filter(pk=new_todo.pk).exists()
+
+    # 2 Test add valid todo
+    def test_valid_todo_backend(self):
+        new_todo = self.create_todo_backend('This is a new todo!')
+        assert True == TodoItem.objects.filter(pk=new_todo.pk).exists()
+
+    # 3 Test delete todo
+    def test_delete_todo_backend(self):
+        to_be_deleted = self.get_first_or_create_todo_backend()
+        to_be_deleted.delete()
+        assert False == TodoItem.objects.filter(pk=to_be_deleted.pk).exists()
+
+    # 4 Test archive todo
+    def test_archive_todo_backend(self):
+        to_be_archived = self.get_first_or_create_todo_backend()
+        to_be_archived.archived = True
+        to_be_archived.save()
+        assert True == TodoItem.objects.get(pk=to_be_archived.pk).archive
