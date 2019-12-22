@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Todo Page</title>
+  </head>
+  <body>
+    <h1>This is the todo page</h1>
+
+    <ul>
+      {% for todo_item in all_items %}
+      <li>
+        {{ todo_item.content }}
+        <form
+          name="{{todo_item.content}}"
+          action="/deleteTodo/{{todo_item.id}}/"
+          style="display: inline;"
+          method="post"
+        >
+          {% csrf_token %}
+          <input
+            id="{{todo_item.id}}"
+            name="delete_btn"
+            type="submit"
+            value="Delete"
+          />
+        </form>
+        <form
+          name="{{todo_item.content}}"
+          action="/archiveTodo/{{todo_item.id}}/"
+          style="display: inline;"
+          method="post"
+        >
+          {% csrf_token %}
+          <input
+            id="{{todo_item.id}}"
+            name="archive_btn"
+            type="submit"
+            value="Archive"
+          />
+        </form>
+      </li>
+      {% endfor %}
+    </ul>
+
+    <form action="/addTodo/" method="post">
+      {% csrf_token %}
+      <input id="todo_input" type="text" name="content" required />
+      <input id="submit_btn" type="submit" value="Add" />
+    </form>
+  </body>
+</html>

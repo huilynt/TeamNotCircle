@@ -9,46 +9,36 @@ import time
 import unittest
 import uuid
 
+# Test values/variables
+todo_content = 'This is a new Todo!!'
 
-class TestTodoPage(unittest.TestCase):
+
+# SELENIUM TEST
+@pytest.mark.django_db
+class TestTodoPageSelenium(unittest.TestCase):
     def setUp(self):
         print('Setup')
+
         self.driver = webdriver.Chrome()
         self.driver.get("http://localhost:8000/todo")
-
-        self.todo_content = 'This is a new Todo!!'
 
         # Elements
         self.todo_input = self.driver.find_element_by_xpath(
             "//input[@id='todo_input']")
         self.submit_btn = self.driver.find_element_by_xpath(
             "//input[@id='submit_btn']")
-        self.delete_btn = self.driver.find_element_by_xpath(
-            "//input[@id='delete_btn'][0]")
-        self.archive_btn = self.driver.find_element_by_xpath(
-            "//input[@id='archive_btn'][0]")
 
     def tearDown(self):
         print('Tear down')
         self.driver.quit()
 
     # Helper functions
-    def clearInputs(self):
+    def clear_inputs(self):
         self.todo_input.clear()
 
-    def create_todo_selenium(self):
-        self.todo_input.send_keys(self.todo_content)
+    def create_todo_selenium(self, new_content):
+        self.todo_input.send_keys(new_content)
         self.submit_btn.click()
-
-    def create_todo_backend(self, todo_content):
-        new_todo = TodoItem.objects.create(content=todo_content)
-        return new_todo
-
-    def get_first_or_create_todo_backend(self):
-        if (TodoItem.objects.count()) < 0:
-            self.create_todo_backend('This is a new todo!')
-        all_todo = TodoItem.objects.all()
-        return all_todo[0]
 
     # SELENIUM TEST
     # 1 Test access to todo page
@@ -57,25 +47,58 @@ class TestTodoPage(unittest.TestCase):
 
     # 2 Test add empty todo
     def test_empty_todo_selenium(self):
-        self.clearInputs()
+        self.clear_inputs()
+        original_page_source = self.driver.page_source
         self.submit_btn.click()
+        assert original_page_source == self.driver.page_source
 
     # 3 Test add valid todo
     def test_valid_todo_selenium(self):
-        self.create_todo_selenium()
-        assert self.todo_content in self.driver.page_source
+        self.create_todo_selenium(todo_content)
+        assert todo_content in self.driver.page_source
 
     # 4 Test delete todo
     def test_delete_todo_selenium(self):
-        self.delete_btn.click()
-        assert self.todo_content not in self.driver.page_source
+        content = str(uuid.uuid4())
+        self.create_todo_selenium(new_content=content)
+        time.sleep(1)
+        delete_btn = self.driver.find_element_by_xpath(
+            "//form[@name='{}']/input[@name='delete_btn']".format(content))
+        delete_btn.click()
+        time.sleep(1)
+        assert content not in self.driver.page_source
 
     # 5 Test archive todo
     def test_archive_todo_selenium(self):
-        self.create_todo_selenium()
-        self.archive_btn.click()
+        content = str(uuid.uuid4())
+        self.create_todo_selenium(new_content=content)
+        time.sleep(1)
+        archive_btn = self.driver.find_element_by_xpath(
+            "//form[@name='{}']/input[@name='archive_btn']".format(content))
+        archive_btn.click()
+        assert content not in self.driver.page_source
 
-    # BACKEND TEST
+
+# BACKEND TEST
+@pytest.mark.django_db
+class TestTodoPageBackend(unittest.TestCase):
+    def setUp(self):
+        print('Setup')
+
+    def tearDown(self):
+        print('Tear down')
+
+    # Helper functions
+    def create_todo_backend(self, todo_content):
+        new_todo = TodoItem.objects.create(content=todo_content)
+        return new_todo
+
+    def get_first_or_create_todo_backend(self):
+        if (TodoItem.objects.count()) < 1:
+            self.create_todo_backend('This is a new todo!')
+        all_todo = TodoItem.objects.all()
+        return all_todo[0]
+
     # 1 Test add empty todo
     def test_empty_todo_backend(self):
         new_todo = self.create_todo_backend('')
@@ -95,6 +118,6 @@ class TestTodoPage(unittest.TestCase):
     # 4 Test archive todo
     def test_archive_todo_backend(self):
         to_be_archived = self.get_first_or_create_todo_backend()
-        to_be_archived.archived = True
+        to_be_archived.archive = True
         to_be_archived.save()
         assert True == TodoItem.objects.get(pk=to_be_archived.pk).archive
