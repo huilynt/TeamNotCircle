@@ -26,3 +26,7 @@ def archive_todo(request, todo_id):
     item_to_archive.archive = True
     item_to_archive.save()
     return HttpResponseRedirect('/todo/')
+
+
+def team_contributions(request):
+    return render(request, 'contributions.html')
