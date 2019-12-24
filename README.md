@@ -8,3 +8,7 @@ ETI CA2 !!
 2. Open command prompt in the folder
 3. Type and run: `python manage.py migrate && python manage.py runserver`
 4. Go to `localhost:8000` to see the stuff
+
+## Passwords and stuff
+Username: TeamNotCircle
+Password: 123456Ab
