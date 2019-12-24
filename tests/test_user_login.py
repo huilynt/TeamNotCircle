@@ -22,7 +22,7 @@ class TestLoginSelenium(unittest.TestCase):
     def setUp(self):
         print('Setup')
         self.driver = webdriver.Chrome()
-        self.driver.get("http://localhost:8000/admin")
+        self.driver.get("http://localhost:8000/accounts/login/")
         # Elements
         self.username_input = self.driver.find_element_by_xpath(
             "//input[@id='id_username']")
@@ -40,7 +40,7 @@ class TestLoginSelenium(unittest.TestCase):
 
     # 1 Test access to login page
     def test_access(self):
-        assert "Log in | Django site admin" in self.driver.title
+        assert "Log in | User" in self.driver.title
 
     # 2 Test empty login
     def test_login_empty_selenium(self):
@@ -55,7 +55,7 @@ class TestLoginSelenium(unittest.TestCase):
         self.password_input.send_keys(valid_password)
         self.password_input.send_keys(Keys.RETURN)
         assert None != self.driver.find_element_by_xpath(
-            "//div[@id='content']/p[@class='errornote']")
+            "//p[@class='errornote']")
 
     # 4 Test invalid password
     def test_invalid_password_selenium(self):
@@ -63,7 +63,7 @@ class TestLoginSelenium(unittest.TestCase):
         self.password_input.send_keys(invalid_password)
         self.password_input.send_keys(Keys.RETURN)
         assert None != self.driver.find_element_by_xpath(
-            "//div[@id='content']/p[@class='errornote']")
+            "//p[@class='errornote']")
 
     # 5 Test valid username and password
     def test_valid_username_password_selenium(self):
@@ -72,7 +72,7 @@ class TestLoginSelenium(unittest.TestCase):
         self.password_input.send_keys(Keys.RETURN)
         time.sleep(1)
         current_url = self.driver.current_url
-        assert 'http://localhost:8000/admin/' == current_url
+        assert 'http://localhost:8000/todo/' == current_url
 
 
 # BACKEND TEST
