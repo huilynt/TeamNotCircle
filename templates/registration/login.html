@@ -1,44 +1,41 @@
+{% extends 'base.html' %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>Log in | User</title>
-</head>
-<body>
-  {% block content %}
-  
-  {% if form.errors %}
-  <p class='errornote'>Your username and password didn't match. Please try again.</p>
-  {% endif %}
-  
-  {% if next %}
-    {% if user.is_authenticated %}
-      <p>Your account doesn't have access to this page. To proceed,
-        please login with an account that has access.</p>
-    {% else %}
-      <p>Please login to see this page.</p>
-    {% endif %}
-  {% endif %}
-  
-  <form method="post" action="{% url 'login' %}">
-    {% csrf_token %}
-    <table>
-      <tr>
-        <td>{{ form.username.label_tag }}</td>
-        <td>{{ form.username }}</td>
-      </tr>
-      <tr>
-        <td>{{ form.password.label_tag }}</td>
-        <td>{{ form.password }}</td>
-      </tr>
-    </table>
-    <input type="submit" value="login" />
-    <input type="hidden" name="next" value="{{ next }}" />
-  </form>
-  
-  {% endblock %}
-</body>
-</html>
+{% block title %}Log in | User{% endblock %}
+
+{% block content %}
+
+{% if form.errors %}
+<div class='errornote alert alert-danger alert-dismissible'>Your username and password didn't match. Please try again.
+</div>
+{% endif %}
+
+{% if next %}
+{% if user.is_authenticated %}
+<div class="errornote alert alert-danger alert-dismissible">Your account doesn't have access to this page. To proceed,
+  please login with an account that has access.</div>
+{% else %}
+<div class="errornote alert alert-danger alert-dismissible">Please login to see this page.</div>
+{% endif %}
+{% endif %}
+
+<form method="post" action="{% url 'login' %}" class='form my-4'>{% csrf_token %}
+  <div class="form-group row">
+    <div class="col">
+      <input type="text" class="form-control" name='username' id='id_username' placeholder="{{ form.username.label }}"
+        required>
+    </div>
+    <div class="col">
+      <input type="password" class="form-control" name='password' id='id_password'
+        placeholder="{{ form.password.label }}">
+    </div>
+  </div>
+
+  <div class="form-group row">
+    <div class="col">
+      <input type="submit" value="Login" class='btn btn-primary' />
+      <input type="hidden" name="next" value="{{ next }}" />
+    </div>
+  </div>
+</form>
+
+{% endblock %}

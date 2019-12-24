@@ -17,18 +17,21 @@ from django.contrib import admin
 from django.urls import include, path
 from django.conf.urls import url
 from django.contrib.auth.views import LoginView
-from todo.views import login_view, todo_view, add_todo, delete_todo, archive_todo, team_contributions
+from todo.views import todo_view, add_todo, delete_todo, archive_todo, team_contributions_view
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('accounts/', include('django.contrib.auth.urls')),
+    path('accounts/',
+         include('django.contrib.auth.urls')
+         # , name='login_view'
+         ),
     # url(r'^login/$',
     #     LoginView.as_view(), {'template_name': 'login.html'},
     #     name='login'),
     # path('login/', auth_views.login),
-    path('todo/', todo_view),
+    path('todo/', todo_view, name='todo_view'),
     path('addTodo/', add_todo),
     path('deleteTodo/<int:todo_id>/', delete_todo),
     path('archiveTodo/<int:todo_id>/', archive_todo),
-    path('contributions/', team_contributions)
+    path('contributions/', team_contributions_view, name='contributions_view')
 ]
