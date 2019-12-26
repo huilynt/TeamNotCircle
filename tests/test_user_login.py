@@ -55,7 +55,7 @@ class TestLoginSelenium(unittest.TestCase):
         self.password_input.send_keys(valid_password)
         self.password_input.send_keys(Keys.RETURN)
         assert None != self.driver.find_element_by_xpath(
-            "//p[@class='errornote']")
+            "//div[contains(@class,'errornote')]")
 
     # 4 Test invalid password
     def test_invalid_password_selenium(self):
@@ -63,7 +63,7 @@ class TestLoginSelenium(unittest.TestCase):
         self.password_input.send_keys(invalid_password)
         self.password_input.send_keys(Keys.RETURN)
         assert None != self.driver.find_element_by_xpath(
-            "//p[@class='errornote']")
+            "//div[contains(@class,'errornote')]")
 
     # 5 Test valid username and password
     def test_valid_username_password_selenium(self):
