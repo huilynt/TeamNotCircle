@@ -11,6 +11,8 @@ import uuid
 
 # Test values/variables
 todo_content = 'This is a new Todo!!'
+valid_username = 'TeamNotCircle'
+valid_password = '123456Ab'
 
 
 # SELENIUM TEST
@@ -20,7 +22,7 @@ class TestTodoPageSelenium(unittest.TestCase):
         print('Setup')
 
         self.driver = webdriver.Chrome()
-        self.driver.get("http://localhost:8000/todo")
+        self.login()
 
         # Elements
         self.todo_input = self.driver.find_element_by_xpath(
@@ -39,6 +41,17 @@ class TestTodoPageSelenium(unittest.TestCase):
     def create_todo_selenium(self, new_content):
         self.todo_input.send_keys(new_content)
         self.submit_btn.click()
+
+    def login(self):
+        self.driver.get("http://localhost:8000/accounts/login")
+        username_input = self.driver.find_element_by_xpath(
+            "//input[@id='id_username']")
+        password_input = self.driver.find_element_by_xpath(
+            "//input[@id='id_password']")
+        username_input.send_keys(valid_username)
+        password_input.send_keys(valid_password)
+        password_input.send_keys(Keys.RETURN)
+        time.sleep(1)
 
     # SELENIUM TEST
     # 1 Test access to todo page
