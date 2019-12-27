@@ -15,7 +15,7 @@ def todo_view(request):
 
 @login_required
 def add_todo(request):
-    new_item = TodoItem(content=request.POST['content'])
+    new_item = TodoItem(content=request.POST['content'], user=request.user)
     new_item.save()
     return HttpResponseRedirect('/todo/')
 
