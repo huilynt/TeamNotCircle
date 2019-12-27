@@ -90,7 +90,10 @@ class TestTodoPageSelenium(unittest.TestCase):
         archive_btn = self.driver.find_element_by_xpath(
             "//form[@name='{}']/input[@name='archive_btn']".format(content))
         archive_btn.click()
-        assert content not in self.driver.page_source
+        time.sleep(1)
+        archive_btn_disabled = self.driver.find_element_by_xpath(
+            "//form[@name='{}']/input[@name='archive_btn']".format(content))
+        assert False == archive_btn_disabled.is_enabled()
 
 
 # BACKEND TEST
@@ -98,27 +101,28 @@ class TestTodoPageSelenium(unittest.TestCase):
 class TestTodoPageBackend(unittest.TestCase):
     def setUp(self):
         print('Setup')
-        self.user = User.objects.create_user(username=valid_username,
-                                             password=valid_password)
+        self.user1 = User.objects.create_user(username=valid_username,
+                                              password=valid_password)
+        self.user2 = User.objects.create_user(username='user2',
+                                              password='valid_password')
 
     def tearDown(self):
         print('Tear down')
 
     # Helper functions
-    def create_todo_backend(self, todo_content):
-        new_todo = TodoItem.objects.create(content=todo_content,
-                                           user=self.user)
+    def create_todo_backend(self, todo_content, user):
+        new_todo = TodoItem.objects.create(content=todo_content, user=user)
         return new_todo
 
     def get_first_or_create_todo_backend(self):
         if (TodoItem.objects.count()) < 1:
-            self.create_todo_backend('This is a new todo!')
+            self.create_todo_backend('This is a new todo!', self.user1)
         all_todo = TodoItem.objects.all()
         return all_todo[0]
 
     # 1 Test add empty todo
     def test_empty_todo_backend(self):
-        new_todo = self.create_todo_backend('')
+        new_todo = self.create_todo_backend('', user=self.user1)
         assert True == TodoItem.objects.filter(pk=new_todo.pk).exists()
 
     # 2 Test add valid todo
@@ -138,3 +142,13 @@ class TestTodoPageBackend(unittest.TestCase):
         to_be_archived.archive = True
         to_be_archived.save()
         assert True == TodoItem.objects.get(pk=to_be_archived.pk).archive
+
+    # 5 Test filter todo by user
+    def test_filter_todo_by_user(self):
+        user1_todo = self.create_todo_backend(todo_content=uuid.uuid4(),
+                                              user=self.user1)
+        user2_todo = self.create_todo_backend(todo_content=uuid.uuid4(),
+                                              user=self.user2)
+        filtered_todo = TodoItem.objects.filter(user=self.user1)
+        assert user1_todo in filtered_todo
+        assert user2_todo not in filtered_todo

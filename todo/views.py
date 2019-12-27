@@ -9,7 +9,7 @@ from django.contrib.auth.decorators import login_required
 # Create your views here.
 @login_required
 def todo_view(request):
-    all_todo_items = TodoItem.objects.filter(archive=False)
+    all_todo_items = TodoItem.objects.all()
     return render(request, 'todo.html', {'all_items': all_todo_items})
 
 
