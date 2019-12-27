@@ -8,6 +8,7 @@ import pytest
 import time
 import unittest
 import uuid
+from django.contrib.auth.models import User
 
 # Test values/variables
 todo_content = 'This is a new Todo!!'
@@ -97,13 +98,16 @@ class TestTodoPageSelenium(unittest.TestCase):
 class TestTodoPageBackend(unittest.TestCase):
     def setUp(self):
         print('Setup')
+        self.user = User.objects.create_user(username=valid_username,
+                                             password=valid_password)
 
     def tearDown(self):
         print('Tear down')
 
     # Helper functions
     def create_todo_backend(self, todo_content):
-        new_todo = TodoItem.objects.create(content=todo_content)
+        new_todo = TodoItem.objects.create(content=todo_content,
+                                           user=self.user)
         return new_todo
 
     def get_first_or_create_todo_backend(self):
