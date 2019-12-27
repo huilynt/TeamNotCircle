@@ -17,7 +17,7 @@ from django.contrib import admin
 from django.urls import include, path
 from django.conf.urls import url
 from django.contrib.auth.views import LoginView
-from todo.views import todo_view, add_todo, delete_todo, archive_todo, team_contributions_view
+from todo.views import todo_view, add_todo, delete_todo, archive_todo, team_contributions_view, history_view
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -33,5 +33,6 @@ urlpatterns = [
     path('addTodo/', add_todo),
     path('deleteTodo/<int:todo_id>/', delete_todo),
     path('archiveTodo/<int:todo_id>/', archive_todo),
-    path('contributions/', team_contributions_view, name='contributions_view')
+    path('contributions/', team_contributions_view, name='contributions_view'),
+    path('historyTodo/', history_view, name="history_view")
 ]

@@ -17,6 +17,7 @@ def todo_view(request):
 def add_todo(request):
     new_item = TodoItem(content=request.POST['content'])
     new_item.save()
+    request.session['new_item'] = new_item.content
     return HttpResponseRedirect('/todo/')
 
 
@@ -34,6 +35,12 @@ def archive_todo(request, todo_id):
     item_to_archive.save()
     return HttpResponseRedirect('/todo/')
 
-
 def team_contributions_view(request):
     return render(request, 'contributions.html')
+
+@login_required
+def history_view(request):
+    todo_history = []
+    item_added = request.session.get('new_item', None)
+    todo_history.append(item_added) 
+    return render(request, 'history.html', {'todo_item_history': todo_history})
