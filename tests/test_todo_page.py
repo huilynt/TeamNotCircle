@@ -1,14 +1,22 @@
 # Imports
-import os
+import django
+from django.test import TestCase, Client
+from django.test.utils import setup_test_environment
+from django.contrib.auth.models import User
+from django.urls import reverse
+
+import pytest
+
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoSuchElementException
+
 from todo.models import TodoItem
-import pytest
+from todo.views import todo_view, add_todo, delete_todo, archive_todo, team_contributions_view
+
 import time
 import unittest
 import uuid
-from django.contrib.auth.models import User
 
 # Test values/variables
 todo_content = 'This is a new Todo!!'
@@ -18,7 +26,7 @@ valid_password = '123456Ab'
 
 # SELENIUM TEST
 @pytest.mark.django_db
-class TestTodoPageSelenium(unittest.TestCase):
+class TestTodoPageSelenium(TestCase):
     def setUp(self):
         print('Setup')
 
@@ -95,7 +103,7 @@ class TestTodoPageSelenium(unittest.TestCase):
 
 # BACKEND TEST
 @pytest.mark.django_db
-class TestTodoPageBackend(unittest.TestCase):
+class TestTodoPageBackend(TestCase):
     def setUp(self):
         print('Setup')
         self.user = User.objects.create_user(username=valid_username,
@@ -138,3 +146,79 @@ class TestTodoPageBackend(unittest.TestCase):
         to_be_archived.archive = True
         to_be_archived.save()
         assert True == TodoItem.objects.get(pk=to_be_archived.pk).archive
+
+
+# VIEW TEST
+@pytest.mark.django_db()
+class TestTodoPageView(TestCase):
+    def setUp(self):
+        print('Setup')
+        self.unauth_client = Client()
+        self.auth_client = Client()
+        self.user = User.objects.create_user(username=valid_username,
+                                             password=valid_password)
+        self.auth_client.login(username=valid_username,
+                               password=valid_password)
+
+    def tearDown(self):
+        print('Tear down')
+
+    def test_todo_view_unauthorized(self):
+        res = self.unauth_client.get(reverse('todo_view', ))
+        assert 302 == res.status_code
+
+    def test_todo_view_authorized(self):
+        res = self.auth_client.get(reverse('todo_view', ))
+        print(self.auth_client.login)
+        assert 200 == res.status_code
+
+    def test_add_todo_view_unauthorized(self):
+        res = self.unauth_client.post(reverse('add_todo_view'), {
+            'content': 'New Todo!!!',
+            'user': self.client
+        })
+        assert (302 == res.status_code) and (
+            '/accounts/login/?next=/addTodo/' == res.url)
+
+    def test_add_todo_view_authorized(self):
+        res = self.auth_client.post(reverse('add_todo_view'), {
+            'content': 'New Todo!!!',
+            'user': self.auth_client
+        })
+        assert (302 == res.status_code) and ('/todo/' == res.url)
+
+    def test_delete_todo_view_unauthorized(self):
+        new_todo = TodoItem.objects.create(content=todo_content,
+                                           user=self.user)
+        res = self.unauth_client.post(
+            reverse('delete_todo_view', kwargs={'todo_id': new_todo.pk}))
+        print(res)
+        assert (302 == res.status_code) and (
+            '/accounts/login/?next=/deleteTodo/{}/'.format(
+                new_todo.pk) == res.url)
+
+    def test_delete_todo_view_authorized(self):
+        new_todo = TodoItem.objects.create(content=todo_content,
+                                           user=self.user)
+        res = self.auth_client.post(
+            reverse('delete_todo_view', kwargs={'todo_id': new_todo.pk}))
+        print(res)
+        assert (302 == res.status_code) and ('/todo/' == res.url)
+
+    def test_archive_todo_view_unauthorized(self):
+        new_todo = TodoItem.objects.create(content=todo_content,
+                                           user=self.user)
+        res = self.unauth_client.post(
+            reverse('archive_todo_view', kwargs={'todo_id': new_todo.pk}))
+        print(res)
+        assert (302 == res.status_code) and (
+            '/accounts/login/?next=/archiveTodo/{}/'.format(
+                new_todo.pk) == res.url)
+
+    def test_archive_todo_view_authorized(self):
+        new_todo = TodoItem.objects.create(content=todo_content,
+                                           user=self.user)
+        res = self.auth_client.post(
+            reverse('archive_todo_view', kwargs={'todo_id': new_todo.pk}))
+        print(res)
+        assert (302 == res.status_code) and ('/todo/' == res.url)
