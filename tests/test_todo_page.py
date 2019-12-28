@@ -163,15 +163,18 @@ class TestTodoPageView(TestCase):
     def tearDown(self):
         print('Tear down')
 
+    # 1 Test logged out user access to todo view
     def test_todo_view_unauthorized(self):
         res = self.unauth_client.get(reverse('todo_view', ))
         assert 302 == res.status_code
 
+    # 2 Test logged in user access to todo view
     def test_todo_view_authorized(self):
         res = self.auth_client.get(reverse('todo_view', ))
         print(self.auth_client.login)
         assert 200 == res.status_code
 
+    # 3 Test logged out user access to add todo view
     def test_add_todo_view_unauthorized(self):
         res = self.unauth_client.post(reverse('add_todo_view'), {
             'content': 'New Todo!!!',
@@ -180,6 +183,7 @@ class TestTodoPageView(TestCase):
         assert (302 == res.status_code) and (
             '/accounts/login/?next=/addTodo/' == res.url)
 
+    # 3 Test logged in user access to add todo view
     def test_add_todo_view_authorized(self):
         res = self.auth_client.post(reverse('add_todo_view'), {
             'content': 'New Todo!!!',
@@ -187,6 +191,7 @@ class TestTodoPageView(TestCase):
         })
         assert (302 == res.status_code) and ('/todo/' == res.url)
 
+    # 3 Test logged out user access to delete todo view
     def test_delete_todo_view_unauthorized(self):
         new_todo = TodoItem.objects.create(content=todo_content,
                                            user=self.user)
@@ -197,6 +202,7 @@ class TestTodoPageView(TestCase):
             '/accounts/login/?next=/deleteTodo/{}/'.format(
                 new_todo.pk) == res.url)
 
+    # 3 Test logged in user access to delete todo view
     def test_delete_todo_view_authorized(self):
         new_todo = TodoItem.objects.create(content=todo_content,
                                            user=self.user)
@@ -205,6 +211,7 @@ class TestTodoPageView(TestCase):
         print(res)
         assert (302 == res.status_code) and ('/todo/' == res.url)
 
+    # 3 Test logged out user access to archive todo view
     def test_archive_todo_view_unauthorized(self):
         new_todo = TodoItem.objects.create(content=todo_content,
                                            user=self.user)
@@ -215,6 +222,7 @@ class TestTodoPageView(TestCase):
             '/accounts/login/?next=/archiveTodo/{}/'.format(
                 new_todo.pk) == res.url)
 
+    # 3 Test logged in user access to archive todo view
     def test_archive_todo_view_authorized(self):
         new_todo = TodoItem.objects.create(content=todo_content,
                                            user=self.user)
