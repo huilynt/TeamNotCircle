@@ -30,8 +30,8 @@ urlpatterns = [
     #     name='login'),
     # path('login/', auth_views.login),
     path('todo/', todo_view, name='todo_view'),
-    path('addTodo/', add_todo),
-    path('deleteTodo/<int:todo_id>/', delete_todo),
-    path('archiveTodo/<int:todo_id>/', archive_todo),
+    path('addTodo/', add_todo, name='add_todo_view'),
+    path('deleteTodo/<int:todo_id>/', delete_todo, name='delete_todo_view'),
+    path('archiveTodo/<int:todo_id>/', archive_todo, name='archive_todo_view'),
     path('contributions/', team_contributions_view, name='contributions_view')
 ]
