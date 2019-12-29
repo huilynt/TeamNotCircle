@@ -63,3 +63,10 @@ def signup(request):
         print('else')
         form = UserCreationForm()
     return render(request, 'signup.html', {'form': form})
+
+
+@login_required
+def history_view(request):
+    added_history = TodoItem.objects.filter(archive=True)
+    return render(request, 'history.html',
+                  {'todo_item_history': added_history})
