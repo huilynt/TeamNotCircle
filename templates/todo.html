@@ -14,19 +14,6 @@
       <input id="{{todo_item.id}}" name="delete_btn" type="submit" value="Delete"
         class="btn btn-outline-danger btn-sm" />
     </form>
-    {% if todo_item.archive %}
-    <form name="{{todo_item.content}}" action="/archiveTodo/{{todo_item.id}}/" style="display: inline;" method="post">
-      {% csrf_token %}
-      <input id="{{todo_item.id}}" name="archive_btn" type="submit" value="Archived" class="btn btn-warning btn-sm"
-        disabled />
-    </form>
-    {% else %}
-    <form name="{{todo_item.content}}" action="/archiveTodo/{{todo_item.id}}/" style="display: inline;" method="post">
-      {% csrf_token %}
-      <input id="{{todo_item.id}}" name="archive_btn" type="submit" value="Archive" class="btn btn-warning btn-sm" />
-    </form>
-    {% endif %}
-
   </li>
   {% endfor %}
 </ul>
