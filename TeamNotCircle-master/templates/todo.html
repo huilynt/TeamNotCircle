@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}Todo Page{% endblock %}
+
+{% block content %}
+<h4 class="py-2">This is the todo page</h4>
+
+<ul class="list-group py-2">
+  {% for todo_item in all_items %}
+  <li class="list-group-item">
+    {{ todo_item.content }}
+    <form name="{{todo_item.content}}" action="/deleteTodo/{{todo_item.id}}/" style="display: inline;" method="post">
+      {% csrf_token %}
+      <input id="{{todo_item.id}}" name="delete_btn" type="submit" value="Delete"
+        class="btn btn-outline-danger btn-sm" />
+    </form>
+    <form name="{{todo_item.content}}" action="/archiveTodo/{{todo_item.id}}/" style="display: inline;" method="post">
+      {% csrf_token %}
+      <input id="{{todo_item.id}}" name="archive_btn" type="submit" value="Archive" class="btn btn-warning btn-sm" />
+    </form>
+  </li>
+  {% endfor %}
+</ul>
+
+<form action="/addTodo/" method="post" class="form-inline py-2">
+  {% csrf_token %}
+  <input id="todo_input" type="text" name="content" class="form-control mr-sm-2" required />
+  <input id="submit_btn" type="submit" value="Add" class="btn btn-outline-primary" />
+</form>
+{% endblock %}
