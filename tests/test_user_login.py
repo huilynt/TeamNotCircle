@@ -3,8 +3,15 @@ import os
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoSuchElementException
-from django.contrib.auth import authenticate
+
+import django
+from django.test import TestCase, Client
+from django.test.utils import setup_test_environment
 from django.contrib.auth.models import User
+from django.urls import reverse
+from django.contrib.auth import authenticate, logout
+from django.contrib.auth.models import User
+
 import pytest
 import time
 import unittest
@@ -18,7 +25,7 @@ invalid_password = 'InvalidPassword'
 
 # SELENIUM TEST
 @pytest.mark.django_db
-class TestLoginSelenium(unittest.TestCase):
+class TestLoginSelenium(TestCase):
     def setUp(self):
         print('Setup')
         self.driver = webdriver.Chrome()
@@ -39,7 +46,7 @@ class TestLoginSelenium(unittest.TestCase):
         self.password_input.clear()
 
     # 1 Test access to login page
-    def test_access(self):
+    def test_access_selenium(self):
         assert "Log in | User" in self.driver.title
 
     # 2 Test empty login
@@ -74,10 +81,20 @@ class TestLoginSelenium(unittest.TestCase):
         current_url = self.driver.current_url
         assert 'http://localhost:8000/todo/' == current_url
 
+    # 6 Test logout
+    def test_logout_selenium(self):
+        self.username_input.send_keys(valid_username)
+        self.password_input.send_keys(valid_password)
+        self.password_input.send_keys(Keys.RETURN)
+        time.sleep(1)
+        logout_btn = self.driver.find_element_by_link_text('Logout')
+        logout_btn.click()
+        assert 'http://localhost:8000/accounts/login/' == self.driver.current_url
+
 
 # BACKEND TEST
 @pytest.mark.django_db
-class TestLoginBackend(unittest.TestCase):
+class TestLoginBackend(TestCase):
     def setUp(self):
         print('Setup')
         # Create user object
@@ -114,3 +131,52 @@ class TestLoginBackend(unittest.TestCase):
     def test_valid_username_password_backend(self):
         user = authenticate(username=valid_username, password=valid_password)
         assert None is not user
+
+
+# VIEWS TEST
+@pytest.mark.django_db
+class TestLoginView(TestCase):
+    def setUp(self):
+        print('Setup')
+        self.auth_client = Client()
+        self.user = User.objects.create_user(username=valid_username,
+                                             password=valid_password)
+
+    def tearDown(self):
+        print('Tear down')
+
+    # 1 Test access
+    def test_access_view(self):
+        res = self.auth_client.get(reverse('login'))
+        assert 200 == res.status_code
+
+    # 2 Test invalid username
+    def test_invalid_username_view(self):
+        res = self.auth_client.post(reverse('login'), {
+            'username': invalid_username,
+            'password': valid_password
+        })
+        assert 200 == res.status_code
+
+    # 3 Test invalid password
+    def test_invalid_password_view(self):
+        res = self.auth_client.post(reverse('login'), {
+            'username': valid_username,
+            'password': invalid_password
+        })
+        assert 200 == res.status_code
+
+    # 4 Test all valid fields
+    def test_all_valid_view(self):
+        res = self.auth_client.post(reverse('login'), {
+            'username': valid_username,
+            'password': valid_password
+        })
+        assert (302 == res.status_code) and ('/todo/' == res.url)
+
+    # 5 Test logout view
+    def test_logout_view(self):
+        self.auth_client.login(username=valid_username,
+                               password=valid_password)
+        res = self.auth_client.get(reverse('logout'))
+        assert (302 == res.status_code) and ('/accounts/login/' == res.url)

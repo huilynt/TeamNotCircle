@@ -17,22 +17,16 @@ from django.contrib import admin
 from django.urls import include, path
 from django.conf.urls import url
 from django.contrib.auth.views import LoginView
-from todo.views import todo_view, add_todo, delete_todo, archive_todo, team_contributions_view, history_view
+from todo.views import todo_view, add_todo, delete_todo, archive_todo, team_contributions_view, signup, history_view
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('accounts/',
-         include('django.contrib.auth.urls')
-         # , name='login_view'
-         ),
-    # url(r'^login/$',
-    #     LoginView.as_view(), {'template_name': 'login.html'},
-    #     name='login'),
-    # path('login/', auth_views.login),
+    path('accounts/', include('django.contrib.auth.urls')),
+    path('accounts/signup/', signup, name='signup'),
     path('todo/', todo_view, name='todo_view'),
-    path('addTodo/', add_todo),
-    path('deleteTodo/<int:todo_id>/', delete_todo),
-    path('archiveTodo/<int:todo_id>/', archive_todo),
+    path('addTodo/', add_todo, name='add_todo_view'),
+    path('deleteTodo/<int:todo_id>/', delete_todo, name='delete_todo_view'),
+    path('archiveTodo/<int:todo_id>/', archive_todo, name='archive_todo_view'),
     path('contributions/', team_contributions_view, name='contributions_view'),
     path('historyTodo/', history_view, name="history_view")
 ]

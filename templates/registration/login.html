@@ -18,6 +18,10 @@
 {% endif %}
 {% endif %}
 
+{% if user.is_authenticated %}
+<div class="errornote alert alert-danger alert-dismissible">You are already logged in.</div>
+{% else %}
+
 <form method="post" action="{% url 'login' %}" class='form my-4'>{% csrf_token %}
   <div class="form-group row">
     <div class="col">
@@ -26,7 +30,7 @@
     </div>
     <div class="col">
       <input type="password" class="form-control" name='password' id='id_password'
-        placeholder="{{ form.password.label }}">
+        placeholder="{{ form.password.label }}" required>
     </div>
   </div>
 
@@ -37,5 +41,6 @@
     </div>
   </div>
 </form>
+{% endif %}
 
 {% endblock %}
