@@ -46,7 +46,7 @@ class TestLoginSelenium(TestCase):
         self.password_input.clear()
 
     # 1 Test access to login page
-    def test_access(self):
+    def test_access_selenium(self):
         assert "Log in | User" in self.driver.title
 
     # 2 Test empty login
@@ -82,7 +82,7 @@ class TestLoginSelenium(TestCase):
         assert 'http://localhost:8000/todo/' == current_url
 
     # 6 Test logout
-    def test_logout(self):
+    def test_logout_selenium(self):
         self.username_input.send_keys(valid_username)
         self.password_input.send_keys(valid_password)
         self.password_input.send_keys(Keys.RETURN)
@@ -145,31 +145,36 @@ class TestLoginView(TestCase):
     def tearDown(self):
         print('Tear down')
 
-    # 1 Test access to login view
-    def test_access_login_view(self):
+    # 1 Test access
+    def test_access_view(self):
         res = self.auth_client.get(reverse('login'))
-        print(res)
-        assert (200 == res.status_code) and (
-            django.template.response.TemplateResponse == type(res))
+        assert 200 == res.status_code
 
-    # 2 Test invalid login view
-    def test_login_view_invalid(self):
+    # 2 Test invalid username
+    def test_invalid_username_view(self):
         res = self.auth_client.post(reverse('login'), {
             'username': invalid_username,
             'password': valid_password
         })
-        assert (200 == res.status_code) and (
-            django.template.response.TemplateResponse == type(res))
+        assert 200 == res.status_code
 
-    # 3 Test valid login view
-    def test_login_view_valid(self):
+    # 3 Test invalid password
+    def test_invalid_password_view(self):
+        res = self.auth_client.post(reverse('login'), {
+            'username': valid_username,
+            'password': invalid_password
+        })
+        assert 200 == res.status_code
+
+    # 4 Test all valid fields
+    def test_all_valid_view(self):
         res = self.auth_client.post(reverse('login'), {
             'username': valid_username,
             'password': valid_password
         })
         assert (302 == res.status_code) and ('/todo/' == res.url)
 
-    # 4 Test logout view
+    # 5 Test logout view
     def test_logout_view(self):
         self.auth_client.login(username=valid_username,
                                password=valid_password)

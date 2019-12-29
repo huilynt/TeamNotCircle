@@ -90,18 +90,19 @@ class TestTodoPageSelenium(TestCase):
         time.sleep(1)
         assert content not in self.driver.page_source
 
-    # 5 Test archive todo
-    def test_archive_todo_selenium(self):
-        content = str(uuid.uuid4())
-        self.create_todo_selenium(new_content=content)
-        time.sleep(1)
-        archive_btn = self.driver.find_element_by_xpath(
-            "//form[@name='{}']/input[@name='archive_btn']".format(content))
-        archive_btn.click()
-        time.sleep(1)
-        archive_btn_disabled = self.driver.find_element_by_xpath(
-            "//form[@name='{}']/input[@name='archive_btn']".format(content))
-        assert False == archive_btn_disabled.is_enabled()
+    # # # FOR SPRINT 1
+    # # 5 Test archive todo
+    # def test_archive_todo_selenium(self):
+    #     content = str(uuid.uuid4())
+    #     self.create_todo_selenium(new_content=content)
+    #     time.sleep(1)
+    #     archive_btn = self.driver.find_element_by_xpath(
+    #         "//form[@name='{}']/input[@name='archive_btn']".format(content))
+    #     archive_btn.click()
+    #     time.sleep(1)
+    #     archive_btn_disabled = self.driver.find_element_by_xpath(
+    #         "//form[@name='{}']/input[@name='archive_btn']".format(content))
+    #     assert False == archive_btn_disabled.is_enabled()
 
 
 # BACKEND TEST
@@ -142,15 +143,17 @@ class TestTodoPageBackend(TestCase):
     # 3 Test delete todo
     def test_delete_todo_backend(self):
         to_be_deleted = self.get_first_or_create_todo_backend()
-        to_be_deleted.delete()
-        assert False == TodoItem.objects.filter(pk=to_be_deleted.pk).exists()
+        to_be_deleted.deleted = True
+        to_be_deleted.save()
+        assert True == TodoItem.objects.get(pk=to_be_deleted.pk).deleted
 
-    # 4 Test archive todo
-    def test_archive_todo_backend(self):
-        to_be_archived = self.get_first_or_create_todo_backend()
-        to_be_archived.archive = True
-        to_be_archived.save()
-        assert True == TodoItem.objects.get(pk=to_be_archived.pk).archive
+    # # # FOR SPRINT 1
+    # # 4 Test archive todo
+    # def test_archive_todo_backend(self):
+    #     to_be_archived = self.get_first_or_create_todo_backend()
+    #     to_be_archived.archive = True
+    #     to_be_archived.save()
+    #     assert True == TodoItem.objects.get(pk=to_be_archived.pk).archive
 
     # 5 Test filter todo by user
     def test_filter_todo_by_user(self):
@@ -161,6 +164,18 @@ class TestTodoPageBackend(TestCase):
         filtered_todo = TodoItem.objects.filter(user=self.user1)
         assert user1_todo in filtered_todo
         assert user2_todo not in filtered_todo
+
+    # 6 Test todo is archived
+    def test_todo_is_archived(self):
+        new_todo = self.create_todo_backend('This is a new todo!',
+                                            user=self.user1)
+        assert True == new_todo.archive
+
+    # 7 Test todo has created timestamp
+    def test_todo_created_timestamp(self):
+        new_todo = self.create_todo_backend('This is a new todo!',
+                                            user=self.user1)
+        assert None is not new_todo.created_at
 
 
 # VIEW TEST
@@ -185,7 +200,9 @@ class TestTodoPageView(TestCase):
 
     # 2 Test logged in user access to todo view
     def test_todo_view_authorized(self):
-        res = self.auth_client.get(reverse('todo_view', ))
+
+        res = self.auth_client.get(reverse('todo_view'),
+                                   {'user': self.auth_client})
         print(self.auth_client.login)
         assert 200 == res.status_code
 
@@ -193,12 +210,12 @@ class TestTodoPageView(TestCase):
     def test_add_todo_view_unauthorized(self):
         res = self.unauth_client.post(reverse('add_todo_view'), {
             'content': 'New Todo!!!',
-            'user': self.client
+            'user': self.unauth_client
         })
         assert (302 == res.status_code) and (
             '/accounts/login/?next=/addTodo/' == res.url)
 
-    # 3 Test logged in user access to add todo view
+    # 4 Test logged in user access to add todo view
     def test_add_todo_view_authorized(self):
         res = self.auth_client.post(reverse('add_todo_view'), {
             'content': 'New Todo!!!',
@@ -206,7 +223,7 @@ class TestTodoPageView(TestCase):
         })
         assert (302 == res.status_code) and ('/todo/' == res.url)
 
-    # 3 Test logged out user access to delete todo view
+    # 5 Test logged out user access to delete todo view
     def test_delete_todo_view_unauthorized(self):
         new_todo = TodoItem.objects.create(content=todo_content,
                                            user=self.user)
@@ -217,7 +234,7 @@ class TestTodoPageView(TestCase):
             '/accounts/login/?next=/deleteTodo/{}/'.format(
                 new_todo.pk) == res.url)
 
-    # 3 Test logged in user access to delete todo view
+    # 6 Test logged in user access to delete todo view
     def test_delete_todo_view_authorized(self):
         new_todo = TodoItem.objects.create(content=todo_content,
                                            user=self.user)
@@ -226,7 +243,7 @@ class TestTodoPageView(TestCase):
         print(res)
         assert (302 == res.status_code) and ('/todo/' == res.url)
 
-    # 3 Test logged out user access to archive todo view
+    # 7 Test logged out user access to archive todo view
     def test_archive_todo_view_unauthorized(self):
         new_todo = TodoItem.objects.create(content=todo_content,
                                            user=self.user)
@@ -237,7 +254,7 @@ class TestTodoPageView(TestCase):
             '/accounts/login/?next=/archiveTodo/{}/'.format(
                 new_todo.pk) == res.url)
 
-    # 3 Test logged in user access to archive todo view
+    # 8 Test logged in user access to archive todo view
     def test_archive_todo_view_authorized(self):
         new_todo = TodoItem.objects.create(content=todo_content,
                                            user=self.user)
